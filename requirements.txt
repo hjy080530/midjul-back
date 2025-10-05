@@ -1,0 +1,35 @@
+# FastAPI & Server
+fastapi==0.109.0
+uvicorn[standard]==0.27.1
+python-multipart==0.0.6
+python-dotenv==1.0.0
+aiofiles==23.2.1
+
+# Supabase (gotrue는 자동으로 의존성 설치됨)
+supabase==2.21.1
+
+# PDF Processing
+pdfplumber==0.10.3
+PyMuPDF==1.23.8
+
+# OCR
+easyocr==1.7.1
+Pillow==10.2.0
+
+# AI/ML - 키워드 추출
+keybert==0.8.3
+sentence-transformers==2.2.2
+scikit-learn==1.4.0
+
+# AI/ML - 요약
+transformers==4.37.2
+torch==2.1.2
+sentencepiece==0.1.99
+
+# Text Analysis
+kss==6.0.1
+
+# Utilities
+pydantic==2.5.3
+pydantic-settings==2.1.0
+httpx==0.26.0
