@@ -1,0 +1,23 @@
+# App
+APP_NAME=믿줄 Backend
+DEBUG=True
+
+# Supabase
+SUPABASE_URL=https://vchavysxzyswmxezafou.supabase.co
+SUPABASE_KEY=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZjaGF2eXN4enlzd214ZXphZm91Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTk1ODkzNDIsImV4cCI6MjA3NTE2NTM0Mn0.MXXl8hLBBNUQKFI6UNlZwC4o8sOLgLdlgOgdJ7xDUTs
+SUPABASE_SERVICE_KEY=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZjaGF2eXN4enlzd214ZXphZm91Iiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc1OTU4OTM0MiwiZXhwIjoyMDc1MTY1MzQyfQ.uncihifz_fQSZbVFI9E0KpdVUQ4DO-dTqsnELbHtdys
+
+# Kakao OAuth (Supabase Auth Provider로 설정할 예정)
+KAKAO_CLIENT_ID=78a624fcdcbd124c608f7a8aa850ba89
+KAKAO_CLIENT_SECRET=1pyFoXV4aY5vtZ4qhkggSK9tgb4YBSbP
+
+# Frontend
+FRONTEND_URL=http://localhost:3000
+
+# AI Models
+KEYWORD_MODEL=paraphrase-multilingual-MiniLM-L12-v2
+SUMMARY_MODEL=eenzeenee/t5-base-korean-summarization
+
+# Upload
+UPLOAD_DIR=./uploads
+MAX_FILE_SIZE=10485760
