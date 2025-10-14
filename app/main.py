@@ -1,7 +1,8 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 import os
-from app.api import auth, processing
+
+from app.api import processing, auth
 from app.config import get_settings
 
 settings = get_settings()

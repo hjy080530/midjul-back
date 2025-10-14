@@ -6,6 +6,7 @@ class KeywordItem(BaseModel):
     word: str
     score: float
     importance: str
+    definition: Optional[str] = None
 
 class DifficultyWord(BaseModel):
     word: str
