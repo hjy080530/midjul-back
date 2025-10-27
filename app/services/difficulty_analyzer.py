@@ -31,7 +31,7 @@ class DifficultyAnalyzer:
             # API 키 (발급 필요: https://stdict.korean.go.kr/openapi/openApiInfo.do)
             # 임시로 공개 검색 사용
             params = {
-                "key": "FB926305D20DFB92DBEE11E8DF7BB3C7",  # 실제 API 키로 교체 필요
+                "key": "225812825962B51D9FA8F705F0D9F441",  # 실제 API 키로 교체 필요
                 "q": word,
                 "req_type": "json",
                 "part": "word",

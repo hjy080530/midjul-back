@@ -51,11 +51,14 @@ async def process_text(
         settings.KOREAN_DICT_API_KEY
     )
 
+    # ✅ 전체 점수 리스트 추출
+    all_scores = [score for word, score in keywords_raw]
+
     keywords = [
         KeywordItem(
             word=word,
             score=score,
-            importance=keyword_extractor.categorize_importance(score),
+            importance=keyword_extractor.categorize_importance(score, all_scores),  # ✅ all_scores 추가
             definition=definitions.get(word)
         )
         for word, score in keywords_raw
@@ -129,6 +132,146 @@ async def process_text(
     print(f"⏱️  처리 시간: {processing_time:.2f}초\n")
 
     return response
+
+
+@router.post("/pdf", response_model=ProcessResponse)
+async def process_pdf(
+        file: UploadFile = File(...),
+        user_id: str = Depends(get_current_user_id)
+):
+    """PDF 파일 처리 + DB 저장"""
+    print(f"\n{'=' * 50}")
+    print(f"📥 PDF 파일 받음: {file.filename}")
+    print(f"👤 사용자: {user_id}")
+    print(f"{'=' * 50}\n")
+
+    start_time = time.time()
+
+    # 파일 확장자 검증
+    if not file.filename.lower().endswith('.pdf'):
+        raise HTTPException(status_code=400, detail="PDF 파일만 업로드 가능합니다")
+
+    # 임시 파일 저장
+    temp_file_path = f"/tmp/{uuid.uuid4()}_{file.filename}"
+
+    try:
+        async with aiofiles.open(temp_file_path, 'wb') as f:
+            content = await file.read()
+            await f.write(content)
+
+        # 1. PDF에서 텍스트 추출
+        extracted_text = text_extractor.extract_from_pdf(temp_file_path)
+
+        if not extracted_text or len(extracted_text.strip()) < 10:
+            raise HTTPException(status_code=400, detail="PDF에서 텍스트를 추출할 수 없습니다")
+
+        # 2. 텍스트 정제
+        cleaned_text = text_extractor.clean_text(extracted_text)
+
+        # 3. 키워드 추출
+        keywords_raw = keyword_extractor.extract(cleaned_text)
+
+        # 4. 국립국어원 뜻풀이
+        keyword_words = [word for word, score in keywords_raw]
+        definitions = await keyword_extractor.get_definitions(
+            keyword_words,
+            settings.KOREAN_DICT_API_KEY
+        )
+
+        # ✅ 전체 점수 리스트 추출
+        all_scores = [score for word, score in keywords_raw]
+
+        keywords = [
+            KeywordItem(
+                word=word,
+                score=score,
+                importance=keyword_extractor.categorize_importance(score, all_scores),  # ✅ all_scores 추가
+                definition=definitions.get(word)
+            )
+            for word, score in keywords_raw
+        ]
+
+        # 5. 하이라이팅
+        highlighted = keyword_extractor.highlight_text_with_definitions(
+            cleaned_text, keywords
+        )
+
+        # 6. 요약
+        summary = summarizer.summarize(cleaned_text)
+
+        # 7. 난이도 분석
+        difficult_words_raw = difficulty_analyzer.analyze_difficulty(cleaned_text)
+        difficult_words = [DifficultyWord(**word) for word in difficult_words_raw]
+
+        processing_time = time.time() - start_time
+
+        # 8. DB 저장
+        document_id = None
+        created_at = datetime.now().isoformat()
+
+        try:
+            supabase = get_supabase()
+
+            if supabase:
+                document_data = {
+                    "user_id": user_id,
+                    "title": file.filename,
+                    "original_text": cleaned_text,
+                    "highlighted_html": highlighted['html'],
+                    "highlighted_markdown": highlighted['markdown'],
+                    "keywords": [kw.dict() for kw in keywords],
+                    "difficult_words": [dw.dict() for dw in difficult_words],
+                    "summary": summary,
+                    "processing_time": processing_time
+                }
+
+                result = supabase.table("documents").insert(document_data).execute()
+
+                if result.data and len(result.data) > 0:
+                    saved_doc = result.data[0]
+                    document_id = saved_doc["id"]
+                    created_at = saved_doc["created_at"]
+                    print(f"✅ DB 저장 성공: {document_id}")
+                else:
+                    print(f"⚠️ DB 저장 결과 없음")
+        except Exception as e:
+            print(f"❌ DB 저장 실패: {e}")
+            import traceback
+            traceback.print_exc()
+
+        # 9. 응답 (DB 저장 실패해도 결과는 반환)
+        if not document_id:
+            document_id = str(uuid.uuid4())
+            print(f"⚠️ 임시 ID 사용: {document_id}")
+
+        response = ProcessResponse(
+            id=document_id,
+            original_text=cleaned_text,
+            highlighted_html=highlighted['html'],
+            highlighted_markdown=highlighted['markdown'],
+            keywords=keywords,
+            difficult_words=difficult_words,
+            summary=summary,
+            processing_time=processing_time,
+            created_at=created_at
+        )
+
+        print(f"⏱️  처리 시간: {processing_time:.2f}초\n")
+
+        return response
+
+    except HTTPException:
+        raise
+    except Exception as e:
+        print(f"❌ PDF 처리 실패: {e}")
+        import traceback
+        traceback.print_exc()
+        raise HTTPException(status_code=500, detail=f"PDF 처리 중 오류 발생: {str(e)}")
+    finally:
+        # 임시 파일 삭제
+        if os.path.exists(temp_file_path):
+            os.remove(temp_file_path)
+            print(f"🗑️  임시 파일 삭제: {temp_file_path}")
 
 
 @router.get("/documents/{document_id}")

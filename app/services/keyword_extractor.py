@@ -223,13 +223,22 @@ class KeywordExtractor:
             print(f"    ❌ 예외: {e}")
             return None
 
-    def categorize_importance(self, score: float) -> str:
-        """중요도 분류"""
-        if score >= 0.4:
+    def categorize_importance(self, score: float, all_scores: List[float]) -> str:
+        """전체 점수 분포를 고려한 동적 카테고리"""
+
+        sorted_scores = sorted(all_scores, reverse=True)
+
+        # 상위 20% -> critical
+        if score >= sorted_scores[int(len(sorted_scores) * 0.2)]:
             return "high"
-        elif score >= 0.2:
+        # 상위 40% -> high
+        elif score >= sorted_scores[int(len(sorted_scores) * 0.4)]:
+            return "high"
+        # 상위 70% -> medium
+        elif score >= sorted_scores[int(len(sorted_scores) * 0.7)]:
             return "medium"
-        return "low"
+        else:
+            return "low"
 
     def highlight_text_with_definitions(self, text: str, keywords: List) -> dict:
         """텍스트 하이라이팅 - 조사 포함"""
