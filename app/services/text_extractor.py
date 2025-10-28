@@ -1,6 +1,5 @@
 import pdfplumber
 import easyocr
-import fitz
 from typing import Optional
 import os
 
