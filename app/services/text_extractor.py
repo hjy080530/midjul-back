@@ -1,5 +1,6 @@
 import pdfplumber
 import easyocr
+import fitz
 from typing import Optional
 import os
 
@@ -8,19 +9,12 @@ class TextExtractor:
     def __init__(self):
         self.ocr_reader: Optional[easyocr.Reader] = None
 
-    def extract_from_pdf(self, file_path: str) -> str:
-        """PDF 텍스트 추출"""
-        text = ""
-        try:
-            with pdfplumber.open(file_path) as pdf:
-                for page in pdf.pages:
-                    page_text = page.extract_text()
-                    if page_text:
-                        text += page_text + "\n"
-        except Exception as e:
-            raise Exception(f"PDF 처리 오류: {str(e)}")
-
-        return text.strip()
+    def extract_text_from_pdf(file_path):
+        with pdfplumber.open(file_path) as pdf:
+            text = ""
+            for page in pdf.pages:
+                text += page.extract_text() or ""
+        return text
 
     def extract_from_image(self, file_path: str) -> str:
         """이미지 OCR"""
